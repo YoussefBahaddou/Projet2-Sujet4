@@ -1,0 +1,120 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options {
+  STATIC = false;
+}
+
+PARSER_BEGIN(Calculator)
+package program;
+
+public class Calculator {
+    public static void main(String args[]) throws ParseException {
+        Calculator parser = new Calculator(System.in);
+        parser.Program();
+    }
+}
+PARSER_END(Calculator)
+
+SKIP : {
+    " "
+  | "\t"
+  | "\n"
+  | "\r"
+}
+
+TOKEN : {
+    < NUMBER: (["0"-"9"])+ ("." (["0"-"9"])+)? >
+  | < PLUS: "+" >
+  | < MINUS: "-" >
+  | < MULTIPLY: "*" >
+  | < DIVIDE: "/" >
+  | < ASSIGN: "=" >
+  | < SEMICOLON: ";" >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < AFFICHER: "afficher" >
+  | < SIN: "sin" >
+  | < COS: "cos" >
+  | < SQRT: "racine" >
+  | < ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* >
+}
+
+void Program() : {}
+{
+    (Statement())*
+    <EOF>
+}
+
+void Statement() : {
+    double value;
+}
+{
+    (
+        Assignment()
+      | Display()
+    )
+    <SEMICOLON>
+}
+
+void Assignment() : {
+    Token id;
+    double value;
+}
+{
+    id=<ID> <ASSIGN> value=Expression()
+    {
+        SymbolTable.set(id.image, value);
+    }
+}
+
+void Display() : {
+    double value;
+}
+{
+    <AFFICHER> <LPAREN> value=Expression() <RPAREN>
+    {
+        System.out.println(value);
+    }
+}
+
+double Expression() : {
+    double value;
+    double value2;
+}
+{
+    value=Term()
+    (
+        <PLUS> value2=Term() { value += value2; }
+      | <MINUS> value2=Term() { value -= value2; }
+    )*
+    { return value; }
+}
+
+double Term() : {
+    double value;
+    double value2;
+}
+{
+    value=Factor()
+    (
+        <MULTIPLY> value2=Factor() { value *= value2; }
+      | <DIVIDE> value2=Factor() { value /= value2; }
+    )*
+    { return value; }
+}
+
+double Factor() : {
+    Token t;
+    double value;
+}
+{
+    (
+        t=<NUMBER> { return Double.parseDouble(t.image); }
+      | t=<ID> { return SymbolTable.get(t.image); }
+      | <LPAREN> value=Expression() <RPAREN> { return value; }
+      | <SIN> <LPAREN> value=Expression() <RPAREN> { return Math.sin(value); }
+      | <COS> <LPAREN> value=Expression() <RPAREN> { return Math.cos(value); }
+      | <SQRT> <LPAREN> value=Expression() <RPAREN> { return Math.sqrt(value); }
+    )
+}
